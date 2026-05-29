@@ -6,285 +6,183 @@ import plotly.express as px
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 
-# --------------------------------------------------
-
-# PAGE CONFIGURATION
-
-# --------------------------------------------------
-
 st.set_page_config(
-page_title="SMU FTEN Student Profile Dashboard",
-layout="wide"
+    page_title="SMU Student Profile Dashboard",
+    layout="wide"
 )
 
-st.title("SMU First-Time Entering Students Profile Dashboard")
-st.markdown(
-"Biographical Profile, Academic, Social and Emotional Analysis"
-)
-
-# --------------------------------------------------
-
-# UPLOAD FILE
-
-# --------------------------------------------------
+st.title("SMU First-Time Entering Students Dashboard")
 
 uploaded_file = st.file_uploader(
-"Upload SMU Biographical Questionnaire Dataset",
-type=["xlsx"]
+    "Upload Excel File",
+    type=["xlsx"]
 )
 
 if uploaded_file is not None:
 
-```
-df = pd.read_excel(uploaded_file)
+    df = pd.read_excel(uploaded_file)
 
-st.success("Dataset uploaded successfully")
+    st.success("Data loaded successfully")
 
-# --------------------------------------------------
-# OVERVIEW
-# --------------------------------------------------
+    # Dataset Overview
+    st.header("Dataset Overview")
 
-st.header("Dataset Overview")
+    col1, col2, col3 = st.columns(3)
 
-col1, col2, col3 = st.columns(3)
+    col1.metric("Students", len(df))
+    col2.metric("Variables", len(df.columns))
+    col3.metric("Missing Values", int(df.isnull().sum().sum()))
 
-col1.metric("Students", len(df))
-col2.metric("Variables", len(df.columns))
-col3.metric("Missing Values", int(df.isnull().sum().sum()))
+    st.dataframe(df.head())
 
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
+    # Show Column Names
+    st.header("Column Names")
 
-# --------------------------------------------------
-# STUDENT PROFILE
-# --------------------------------------------------
+    st.write(df.columns.tolist())
 
-st.header("1. Biographical Data and Demographics")
+    # Frequency Analysis
+    st.header("Frequency Analysis")
 
-categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
-
-if len(categorical_cols) > 0:
-
-    selected_variable = st.selectbox(
-        "Select Demographic Variable",
-        categorical_cols
+    selected_col = st.selectbox(
+        "Select Variable",
+        df.columns
     )
 
-    freq_table = (
-        df[selected_variable]
+    freq = (
+        df[selected_col]
         .fillna("Missing")
         .value_counts()
         .reset_index()
     )
 
-    freq_table.columns = ["Category", "Frequency"]
+    freq.columns = ["Category", "Frequency"]
 
-    freq_table["Percentage"] = round(
-        (freq_table["Frequency"] / len(df)) * 100,
+    freq["Percentage"] = round(
+        freq["Frequency"] / len(df) * 100,
         2
     )
 
-    st.dataframe(freq_table)
+    st.dataframe(freq)
 
     fig = px.bar(
-        freq_table,
+        freq,
         x="Category",
         y="Frequency",
-        title=f"Distribution of {selected_variable}"
+        title=f"Distribution of {selected_col}"
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-# --------------------------------------------------
-# ALL FREQUENCY TABLES
-# --------------------------------------------------
+    # ==========================================
+    # CHANGE THIS TO YOUR EXACT COLUMN NAME
+    # ==========================================
 
-st.header("2. Frequency and Percentage Analysis")
+    TARGET = "22. Academic Achievement"
 
-selected_col = st.selectbox(
-    "Select Any Variable",
-    df.columns
-)
+    if TARGET in df.columns:
 
-profile = (
-    df[selected_col]
-    .fillna("Missing")
-    .value_counts()
-    .reset_index()
-)
+        st.header("Academic Achievement Classification")
 
-profile.columns = ["Response", "Frequency"]
+        model_df = df.copy()
 
-profile["Percentage"] = round(
-    profile["Frequency"] / len(df) * 100,
-    2
-)
+        model_df = model_df.fillna("Missing")
 
-st.dataframe(profile)
+        for col in model_df.columns:
 
-# --------------------------------------------------
-# MACHINE LEARNING
-# --------------------------------------------------
+            encoder = LabelEncoder()
 
-st.header("3. Academic Achievement Classification")
+            model_df[col] = encoder.fit_transform(
+                model_df[col].astype(str)
+            )
 
-target_variable = "22. Academic Achievement"
+        X = model_df.drop(columns=[TARGET])
 
-if target_variable in df.columns:
+        y = model_df[TARGET]
 
-    model_df = df.copy()
-
-    model_df = model_df.fillna("Missing")
-
-    for col in model_df.columns:
-
-        le = LabelEncoder()
-
-        model_df[col] = le.fit_transform(
-            model_df[col].astype(str)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.30,
+            random_state=42
         )
 
-    X = model_df.drop(columns=[target_variable])
+        model = RandomForestClassifier(
+            n_estimators=200,
+            random_state=42
+        )
 
-    y = model_df[target_variable]
+        model.fit(X_train, y_train)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.30,
-        random_state=42
-    )
+        predictions = model.predict(X_test)
 
-    model = RandomForestClassifier(
-        n_estimators=300,
-        random_state=42
-    )
+        accuracy = accuracy_score(
+            y_test,
+            predictions
+        )
 
-    model.fit(X_train, y_train)
+        st.metric(
+            "Classification Accuracy",
+            f"{accuracy:.2%}"
+        )
 
-    predictions = model.predict(X_test)
+        # Variable Importance
 
-    accuracy = accuracy_score(
-        y_test,
-        predictions
-    )
+        st.subheader("Top Predictors")
 
-    st.metric(
-        "Model Accuracy",
-        f"{accuracy:.2%}"
-    )
+        importance = pd.DataFrame({
+            "Variable": X.columns,
+            "Importance": model.feature_importances_
+        })
 
-    # --------------------------------------------------
-    # VARIABLE IMPORTANCE
-    # --------------------------------------------------
+        importance = importance.sort_values(
+            "Importance",
+            ascending=False
+        ).head(15)
 
-    st.header("4. Top Predictors of Academic Achievement")
+        fig2 = px.bar(
+            importance,
+            x="Importance",
+            y="Variable",
+            orientation="h"
+        )
 
-    importance_df = pd.DataFrame({
-        "Variable": X.columns,
-        "Importance": model.feature_importances_
-    })
+        st.plotly_chart(fig2, use_container_width=True)
 
-    importance_df = importance_df.sort_values(
-        by="Importance",
-        ascending=False
-    )
+        # PCA Visualisation
 
-    top_20 = importance_df.head(20)
+        st.subheader("Student Groups")
 
-    fig2 = px.bar(
-        top_20,
-        x="Importance",
-        y="Variable",
-        orientation="h",
-        title="Top 20 Predictors"
-    )
+        pca = PCA(n_components=2)
 
-    st.plotly_chart(fig2, use_container_width=True)
+        pca_results = pca.fit_transform(X)
 
-    # --------------------------------------------------
-    # PCA STUDENT GROUPS
-    # --------------------------------------------------
+        pca_df = pd.DataFrame({
+            "PCA1": pca_results[:, 0],
+            "PCA2": pca_results[:, 1],
+            "Academic Achievement": y
+        })
 
-    st.header("5. Student Groups")
+        fig3 = px.scatter(
+            pca_df,
+            x="PCA1",
+            y="PCA2",
+            color="Academic Achievement",
+            title="Student Clusters"
+        )
 
-    pca = PCA(n_components=2)
+        st.plotly_chart(fig3, use_container_width=True)
 
-    pca_results = pca.fit_transform(X)
+    else:
 
-    pca_df = pd.DataFrame({
-        "Dimension 1": pca_results[:, 0],
-        "Dimension 2": pca_results[:, 1],
-        "Achievement Group": y
-    })
-
-    fig3 = px.scatter(
-        pca_df,
-        x="Dimension 1",
-        y="Dimension 2",
-        color="Achievement Group",
-        title="Student Segmentation Based on Academic Achievement"
-    )
-
-    st.plotly_chart(fig3, use_container_width=True)
-
-    # --------------------------------------------------
-    # RISK GROUPS
-    # --------------------------------------------------
-
-    st.header("6. At-Risk Student Identification")
-
-    median_score = y.median()
-
-    pca_df["Risk Category"] = np.where(
-        y <= median_score,
-        "At Risk",
-        "Not At Risk"
-    )
-
-    fig4 = px.scatter(
-        pca_df,
-        x="Dimension 1",
-        y="Dimension 2",
-        color="Risk Category",
-        title="At-Risk Student Groups"
-    )
-
-    st.plotly_chart(fig4, use_container_width=True)
-
-    # --------------------------------------------------
-    # CONFUSION MATRIX
-    # --------------------------------------------------
-
-    st.header("7. Confusion Matrix")
-
-    cm = confusion_matrix(
-        y_test,
-        predictions
-    )
-
-    cm_df = pd.DataFrame(cm)
-
-    st.dataframe(cm_df)
+        st.warning(
+            f"Column '{TARGET}' not found."
+        )
 
 else:
 
-    st.error(
-        f"Column '{target_variable}' not found in dataset."
+    st.info(
+        "Please upload your SMU Excel dataset."
     )
-
-    st.write("Available columns:")
-
-    st.write(df.columns.tolist())
-```
-
-else:
-
-```
-st.info(
-    "Upload the SMU Biographical Questionnaire Excel file to begin."
-)
-```
