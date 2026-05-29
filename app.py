@@ -415,3 +415,422 @@ if uploaded_file is not None:
     """)
 
     st.divider()
+        # =====================================================
+    # FIRST-GENERATION STUDENTS
+    # =====================================================
+
+    st.header("First-Generation University Students")
+
+    st.info(
+        "Update the variable below with the actual questionnaire field that identifies first-generation university students."
+    )
+
+    # Example column name - replace with actual variable
+    first_gen_col = "First Generation Student"
+
+    if first_gen_col in df.columns:
+
+        first_gen = create_profile_table(
+            df,
+            first_gen_col
+        )
+
+        st.dataframe(
+            first_gen,
+            use_container_width=True
+        )
+
+        download_table(
+            first_gen,
+            "First_Generation_Students.csv",
+            "📥 Download First-Generation Student Data"
+        )
+
+        fig = px.pie(
+            first_gen[first_gen["Response"] != "TOTAL"],
+            names="Response",
+            values="Frequency",
+            title="First-Generation University Students"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # RURAL VS URBAN BACKGROUND
+    # =====================================================
+
+    st.header("Rural vs Urban Background")
+
+    location_col = (
+        "9. How would you describe the place in which your school is situated?"
+    )
+
+    if location_col in df.columns:
+
+        rural_urban = create_profile_table(
+            df,
+            location_col
+        )
+
+        st.dataframe(
+            rural_urban,
+            use_container_width=True
+        )
+
+        download_table(
+            rural_urban,
+            "Rural_Urban_Background.csv",
+            "📥 Download Rural vs Urban Data"
+        )
+
+        fig = px.bar(
+            rural_urban[
+                rural_urban["Response"] != "TOTAL"
+            ],
+            x="Response",
+            y="Percentage",
+            text="Percentage",
+            title="Rural vs Urban Background"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # LANGUAGE DIVERSITY
+    # =====================================================
+
+    st.header("Language Diversity and Schooling Background")
+
+    language_col = (
+        "3. What was the main language used by teachers in class?"
+    )
+
+    if language_col in df.columns:
+
+        language = create_profile_table(
+            df,
+            language_col
+        )
+
+        st.dataframe(
+            language,
+            use_container_width=True
+        )
+
+        download_table(
+            language,
+            "Language_Diversity.csv",
+            "📥 Download Language Diversity Data"
+        )
+
+        fig = px.pie(
+            language[
+                language["Response"] != "TOTAL"
+            ],
+            names="Response",
+            values="Frequency",
+            hole=0.4,
+            title="Language Diversity"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # FAMILY RESPONSIBILITIES
+    # =====================================================
+
+    st.header("Family Responsibilities")
+
+    dependents_col = (
+        "29. Do you have any dependents (e.g., Children, cousins, siblings, or nephews that you financially provide for)?"
+    )
+
+    if dependents_col in df.columns:
+
+        dependents = create_profile_table(
+            df,
+            dependents_col
+        )
+
+        st.dataframe(
+            dependents,
+            use_container_width=True
+        )
+
+        download_table(
+            dependents,
+            "Family_Responsibilities.csv",
+            "📥 Download Family Responsibility Data"
+        )
+
+        fig = px.bar(
+            dependents[
+                dependents["Response"] != "TOTAL"
+            ],
+            x="Response",
+            y="Percentage",
+            text="Percentage",
+            title="Family Responsibilities"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # COMMUTING CHALLENGES
+    # =====================================================
+
+    st.header("Commuting Challenges")
+
+    travel_col = (
+        "45. How long will it take you to travel to campus to arrive at 8am lecture on time?"
+    )
+
+    if travel_col in df.columns:
+
+        travel = create_profile_table(
+            df,
+            travel_col
+        )
+
+        st.dataframe(
+            travel,
+            use_container_width=True
+        )
+
+        download_table(
+            travel,
+            "Commuting_Challenges.csv",
+            "📥 Download Commuting Data"
+        )
+
+        fig = px.bar(
+            travel[
+                travel["Response"] != "TOTAL"
+            ],
+            y="Response",
+            x="Percentage",
+            orientation="h",
+            text="Percentage",
+            title="Commuting Challenges"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # STUDENT SUCCESS PREDICTION MODEL
+    # =====================================================
+
+    st.header("2025 Student Success Prediction Model")
+
+    TARGET = "22. Academic Achievement"
+
+    if TARGET in df.columns:
+
+        ml_df = df.copy()
+
+        ml_df = ml_df.fillna("Missing")
+
+        for col in ml_df.columns:
+
+            encoder = LabelEncoder()
+
+            ml_df[col] = encoder.fit_transform(
+                ml_df[col].astype(str)
+            )
+
+        X = ml_df.drop(columns=[TARGET])
+
+        y = ml_df[TARGET]
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.30,
+            random_state=42
+        )
+
+        model = RandomForestClassifier(
+            n_estimators=500,
+            random_state=42
+        )
+
+        model.fit(
+            X_train,
+            y_train
+        )
+
+        predictions = model.predict(
+            X_test
+        )
+
+        accuracy = accuracy_score(
+            y_test,
+            predictions
+        )
+
+        st.metric(
+            "Prediction Accuracy",
+            f"{accuracy:.1%}"
+        )
+
+        st.divider()
+
+        st.header(
+            "Key Predictors of Academic Success"
+        )
+
+        importance = pd.DataFrame({
+
+            "Variable":
+            X.columns,
+
+            "Importance":
+            model.feature_importances_
+
+        })
+
+        importance = importance.sort_values(
+            by="Importance",
+            ascending=False
+        )
+
+        top20 = importance.head(20)
+
+        st.dataframe(
+            top20,
+            use_container_width=True
+        )
+
+        fig = px.bar(
+            top20,
+            x="Importance",
+            y="Variable",
+            orientation="h",
+            title="Top Predictors of Academic Achievement"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        download_table(
+            top20,
+            "Top_Predictors.csv",
+            "📥 Download Predictor Analysis"
+        )
+
+        st.divider()
+
+        st.header(
+            "Student Success Segments"
+        )
+
+        pca = PCA(
+            n_components=2
+        )
+
+        pca_results = pca.fit_transform(
+            X
+        )
+
+        segments = pd.DataFrame({
+
+            "Dimension 1":
+            pca_results[:, 0],
+
+            "Dimension 2":
+            pca_results[:, 1],
+
+            "Achievement":
+            y
+
+        })
+
+        fig = px.scatter(
+            segments,
+            x="Dimension 1",
+            y="Dimension 2",
+            color="Achievement",
+            title="Student Success Segments"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        st.divider()
+
+        st.header(
+            "Students Requiring Additional Support"
+        )
+
+        segments["Support Category"] = np.where(
+            y <= y.median(),
+            "Additional Support Required",
+            "Progressing Well"
+        )
+
+        fig = px.scatter(
+            segments,
+            x="Dimension 1",
+            y="Dimension 2",
+            color="Support Category",
+            title="Student Support Segmentation"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =====================================================
+    # DOWNLOAD COMPLETE DATASET
+    # =====================================================
+
+    st.header("Download Results")
+
+    csv = df.to_csv(
+        index=False
+    ).encode("utf-8")
+
+    st.download_button(
+        "📥 Download Complete Dataset",
+        csv,
+        "SMU_FTEN_2025.csv",
+        "text/csv"
+    )
+
+else:
+
+    st.info(
+        "Please upload the SMU Biographical Questionnaire dataset to begin."
+    )
