@@ -212,18 +212,7 @@ if uploaded_file is not None:
                     fig,
                     use_container_width=True
                 )
-                img_bytes = fig.to_image(
-                format="png",
-                width=1200,
-                height=800
-                )
-                st.download_button(
-                label="📥 Download Chart",
-                data=img_bytes,
-                file_name=f"{executive_label}.png",
-                mime="image/png"
-                )
-
+             
             largest_group = chart_data.iloc[0]["Response"]
             largest_pct = chart_data.iloc[0]["Percentage"]
 
@@ -682,5 +671,15 @@ else:
     st.info(
         "Please upload the SMU Biographical Questionnaire dataset to begin."
     )
+    st.header("Download Results")
+
+csv = df.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    "📥 Download Dataset",
+    csv,
+    "SMU_FTEN_2025.csv",
+    "text/csv"
+)
 
     st.divider()
