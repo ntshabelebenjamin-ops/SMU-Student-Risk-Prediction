@@ -254,3 +254,164 @@ if uploaded_file is not None:
             )
 
     st.divider()
+        # =====================================================
+    # 2025 ACADEMIC READINESS PROFILE
+    # =====================================================
+
+    st.header("2025 Academic Readiness Profile")
+
+    academic_labels = {
+
+        "13. Did your high school make use of online remote learning services?":
+        "Exposure to Online Learning",
+
+        "16. How often did you make use of online material, online learning sites or ‘apps’?":
+        "Use of Digital Learning Resources",
+
+        "20. Did you participate in any leadership (extracurricular) activities during high school?\n(e.g., School Representative Council, Junior City Council etc.)":
+        "Leadership Participation",
+
+        "22. Academic Achievement":
+        "Academic Achievement Profile"
+    }
+
+    for original_var, executive_label in academic_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            left, right = st.columns([1, 2])
+
+            with left:
+
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+                download_table(
+                    freq,
+                    f"{executive_label}.csv",
+                    f"📥 Download {executive_label}"
+                )
+
+            with right:
+
+                fig = px.bar(
+                    chart_data,
+                    x="Response",
+                    y="Percentage",
+                    text="Percentage",
+                    title=executive_label
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+            st.success(
+                f"Strategic Insight: {chart_data.iloc[0]['Percentage']}% of students fall within the dominant category for {executive_label.lower()}."
+            )
+
+    st.divider()
+
+    # =====================================================
+    # 2025 SCHOOL AND HOME LEARNING ENVIRONMENT
+    # =====================================================
+
+    st.header("2025 School and Home Learning Environment")
+
+    home_labels = {
+
+        "24. Please answer the following questions about your home [Does your home have access to running water ?]":
+        "Access to Running Water",
+
+        "24. Please answer the following questions about your home [Does your home have access to electricity?]":
+        "Access to Electricity",
+
+        "24. Please answer the following questions about your home [Does your home have a computer/laptop?]":
+        "Computer or Laptop Ownership",
+
+        "24. Please answer the following questions about your home [Does your home have access to internet connection ( eg. Wifi...)?]":
+        "Internet Access at Home",
+
+        "24. Please answer the following questions about your home [Do you have a private area to study in your home?]":
+        "Private Study Space"
+    }
+
+    for original_var, executive_label in home_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            left, right = st.columns([1, 2])
+
+            with left:
+
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+                download_table(
+                    freq,
+                    f"{executive_label}.csv",
+                    f"📥 Download {executive_label}"
+                )
+
+            with right:
+
+                fig = px.pie(
+                    chart_data,
+                    names="Response",
+                    values="Percentage",
+                    hole=0.5,
+                    title=executive_label
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+    st.divider()
+
+    # =====================================================
+    # STRATEGIC STUDENT SUCCESS INDICATORS
+    # =====================================================
+
+    st.header("Strategic Student Success Indicators")
+
+    st.markdown("""
+    The following indicators have been identified as critical student success and retention factors:
+
+    - First-generation university students
+    - Rural versus urban background
+    - Financial vulnerability and NSFAS dependency
+    - Language diversity and schooling background
+    - Family responsibilities
+    - Commuting and travel challenges
+    """)
+
+    st.divider()
