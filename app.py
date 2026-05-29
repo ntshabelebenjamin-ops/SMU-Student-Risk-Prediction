@@ -667,19 +667,22 @@ if uploaded_file is not None:
         )
 
 else:
+    st.header("Download Results")
+
+    csv = df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "📥 Download Dataset",
+        csv,
+        "SMU_FTEN_2025.csv",
+        "text/csv"
+    )
+
+    st.divider()
+
+else:
 
     st.info(
         "Please upload the SMU Biographical Questionnaire dataset to begin."
     )
-    st.header("Download Results")
-
-csv = df.to_csv(index=False).encode("utf-8")
-
-st.download_button(
-    "📥 Download Dataset",
-    csv,
-    "SMU_FTEN_2025.csv",
-    "text/csv"
-)
-
     st.divider()
