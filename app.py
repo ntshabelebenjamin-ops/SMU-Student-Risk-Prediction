@@ -834,3 +834,34 @@ else:
     st.info(
         "Please upload the SMU Biographical Questionnaire dataset to begin."
     )
+    def executive_chart(freq, title):
+
+    chart_data = freq[
+        freq["Response"] != "TOTAL"
+    ]
+
+    fig = px.bar(
+        chart_data,
+        y="Response",
+        x="Percentage",
+        orientation="h",
+        text="Percentage"
+    )
+
+    fig.update_layout(
+        title={
+            "text": title,
+            "font": {"size": 16}
+        },
+        font={
+            "size": 14
+        },
+        plot_bgcolor="white",
+        paper_bgcolor="white"
+    )
+
+    fig.update_traces(
+        textposition="outside"
+    )
+
+    return fig
