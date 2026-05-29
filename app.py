@@ -81,7 +81,6 @@ if uploaded_file is not None:
         "Data Completeness",
         f"{completeness}%"
     )
-
     st.divider()
 
     # =====================================================
