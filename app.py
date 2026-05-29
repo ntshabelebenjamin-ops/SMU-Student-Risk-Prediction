@@ -453,5 +453,217 @@ if uploaded_file is not None:
     • Emotional support structures and first-year concerns
     • Factors associated with academic success and student retention
     """)
+        # =====================================================
+    # 2025 STUDENT SUCCESS PREDICTION MODEL
+    # =====================================================
+
+    st.header("2025 Student Success Prediction Model")
+
+    TARGET = "22. Academic Achievement"
+
+    if TARGET in df.columns:
+
+        ml_df = df.copy()
+
+        ml_df = ml_df.fillna("Missing")
+
+        for col in ml_df.columns:
+
+            encoder = LabelEncoder()
+
+            ml_df[col] = encoder.fit_transform(
+                ml_df[col].astype(str)
+            )
+
+        X = ml_df.drop(columns=[TARGET])
+
+        y = ml_df[TARGET]
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.30,
+            random_state=42
+        )
+
+        model = RandomForestClassifier(
+            n_estimators=500,
+            random_state=42
+        )
+
+        model.fit(
+            X_train,
+            y_train
+        )
+
+        predictions = model.predict(X_test)
+
+        accuracy = accuracy_score(
+            y_test,
+            predictions
+        )
+
+        st.subheader("Prediction Accuracy")
+
+        col1, col2 = st.columns(2)
+
+        col1.metric(
+            "Model Accuracy",
+            f"{accuracy:.1%}"
+        )
+
+        col2.metric(
+            "Predictor Variables",
+            len(X.columns)
+        )
+
+        st.divider()
+
+        # =====================================================
+        # TOP PREDICTORS
+        # =====================================================
+
+        st.header("Key Predictors of Academic Success")
+
+        importance = pd.DataFrame({
+            "Variable": X.columns,
+            "Importance": model.feature_importances_
+        })
+
+        importance = importance.sort_values(
+            by="Importance",
+            ascending=False
+        )
+
+        top_predictors = importance.head(20)
+
+        fig = px.bar(
+            top_predictors,
+            x="Importance",
+            y="Variable",
+            orientation="h",
+            text="Importance",
+            title="Top 20 Predictors of Academic Achievement"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        st.info(
+            "The chart above identifies the strongest factors associated with academic achievement within the 2025 FTEN cohort."
+        )
+
+        st.divider()
+
+        # =====================================================
+        # STUDENT SUCCESS SEGMENTS
+        # =====================================================
+
+        st.header("Student Success Segments")
+
+        pca = PCA(
+            n_components=2
+        )
+
+        pca_results = pca.fit_transform(X)
+
+        segments = pd.DataFrame({
+
+            "Dimension 1":
+            pca_results[:, 0],
+
+            "Dimension 2":
+            pca_results[:, 1],
+
+            "Academic Achievement":
+            y.astype(str)
+
+        })
+
+        fig = px.scatter(
+            segments,
+            x="Dimension 1",
+            y="Dimension 2",
+            color="Academic Achievement",
+            title="Student Success Segments"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        st.info(
+            "Students positioned close together share similar characteristics and achievement profiles."
+        )
+
+        st.divider()
+
+        # =====================================================
+        # STUDENTS REQUIRING ADDITIONAL SUPPORT
+        # =====================================================
+
+        st.header("Students Requiring Additional Support")
+
+        threshold = y.median()
+
+        segments["Support Category"] = np.where(
+            y <= threshold,
+            "Additional Support Required",
+            "Progressing Well"
+        )
+
+        fig = px.scatter(
+            segments,
+            x="Dimension 1",
+            y="Dimension 2",
+            color="Support Category",
+            title="Student Support Segmentation"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        support_summary = (
+            segments["Support Category"]
+            .value_counts()
+            .reset_index()
+        )
+
+        support_summary.columns = [
+            "Category",
+            "Students"
+        ]
+
+        support_summary["Percentage"] = round(
+            support_summary["Students"] /
+            support_summary["Students"].sum() * 100,
+            1
+        )
+
+        st.dataframe(
+            support_summary,
+            use_container_width=True
+        )
+
+        st.warning(
+            "Students classified as requiring additional support may benefit from targeted academic, financial, psychosocial and mentoring interventions."
+        )
+
+    else:
+
+        st.error(
+            "Academic Achievement variable not found in the dataset."
+        )
+
+else:
+
+    st.info(
+        "Please upload the SMU Biographical Questionnaire dataset to begin."
+    )
 
     st.divider()
