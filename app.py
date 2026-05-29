@@ -25,17 +25,11 @@ st.set_page_config(
 st.title(
     "SMU First-Time Entering Students Profile and Success Prediction Dashboard: 2025 Cohort"
 )
-st.title(
-    "SMU First-Time Entering Students Profile and Success Prediction Dashboard: 2025 Cohort"
-)
 
 st.caption(
-    "Institutional Research and Student Success Analytics Dashboard"
+    "Prepared by Benjamin Ntshabele | Institutional Research Unit | SMU"
 )
 
-st.markdown("""
-This executive dashboard provides a comprehensive profile...
-""")
 st.caption(
     "Institutional Research and Student Success Analytics Dashboard"
 )
