@@ -213,5 +213,245 @@ if uploaded_file is not None:
             st.info(
                 f"Key Finding: The largest student group falls under '{largest_group}', representing {largest_pct}% of the 2025 FTEN cohort."
             )
+                st.divider()
+                # =====================================================
+    # 2025 ACADEMIC READINESS PROFILE
+    # =====================================================
+
+    st.header("2025 Academic Readiness Profile")
+
+    academic_labels = {
+
+        "13. Did your high school make use of online remote learning services?":
+        "Exposure to Online Learning",
+
+        "16. How often did you make use of online material, online learning sites or ‘apps’?":
+        "Use of Digital Learning Resources",
+
+        "20. Did you participate in any leadership (extracurricular) activities during high school?\n(e.g., School Representative Council, Junior City Council etc.)":
+        "Leadership Participation",
+
+        "22. Academic Achievement":
+        "Academic Achievement Profile"
+    }
+
+    for original_var, executive_label in academic_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            left, right = st.columns([1, 2])
+
+            with left:
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            with right:
+
+                fig = px.bar(
+                    chart_data,
+                    x="Response",
+                    y="Percentage",
+                    text="Percentage",
+                    title=executive_label
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+            largest_group = chart_data.iloc[0]["Response"]
+            largest_pct = chart_data.iloc[0]["Percentage"]
+
+            st.success(
+                f"Insight: {largest_pct}% of students fall within '{largest_group}' for {executive_label.lower()}."
+            )
+
+    st.divider()
+
+    # =====================================================
+    # 2025 SCHOOL AND HOME LEARNING ENVIRONMENT
+    # =====================================================
+
+    st.header("2025 School and Home Learning Environment")
+
+    home_labels = {
+
+        "24. Please answer the following questions about your home [Does your home have access to running water ?]":
+        "Access to Running Water",
+
+        "24. Please answer the following questions about your home [Does your home have access to electricity?]":
+        "Access to Electricity",
+
+        "24. Please answer the following questions about your home [Does your home have a computer/laptop?]":
+        "Computer or Laptop Ownership",
+
+        "24. Please answer the following questions about your home [Does your home have access to internet connection ( eg. Wifi...)?]":
+        "Internet Access at Home",
+
+        "24. Please answer the following questions about your home [Do you have a private area to study in your home?]":
+        "Private Study Space"
+    }
+
+    for original_var, executive_label in home_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            left, right = st.columns([1, 2])
+
+            with left:
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            with right:
+
+                fig = px.pie(
+                    chart_data,
+                    names="Response",
+                    values="Percentage",
+                    hole=0.5,
+                    title=executive_label
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+    st.divider()
+
+    # =====================================================
+    # 2025 STUDENT SUPPORT AND WELLBEING PROFILE
+    # =====================================================
+
+    st.header("2025 Student Support and Wellbeing Profile")
+
+    social_labels = {
+
+        "29. Do you have any dependents (e.g., Children, cousins, siblings, or nephews that you financially provide for)?":
+        "Dependents",
+
+        "33. Do you plan to work part-time during your studies?":
+        "Part-Time Employment Intentions",
+
+        "39. Where will you be staying during your studies?":
+        "Accommodation Arrangements",
+
+        "43. How far away from campus do you live?":
+        "Distance from Campus",
+
+        "45. How long will it take you to travel to campus to arrive at 8am lecture on time?":
+        "Travel Time to Campus"
+    }
+
+    for original_var, executive_label in social_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            left, right = st.columns([1, 2])
+
+            with left:
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            with right:
+
+                fig = px.bar(
+                    chart_data,
+                    y="Response",
+                    x="Percentage",
+                    orientation="h",
+                    text="Percentage",
+                    title=executive_label
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+    emotional_labels = {
+
+        "35. What fears or concerns do you have regarding your first year at university?":
+        "First-Year Concerns",
+
+        "36. What are you looking forward to the most in your first year at university?":
+        "First-Year Expectations"
+    }
+
+    for original_var, executive_label in emotional_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            st.dataframe(
+                freq,
+                use_container_width=True
+            )
+
+    st.divider()
+
+    # =====================================================
+    # STRATEGIC INSIGHTS
+    # =====================================================
+
+    st.header("Strategic Insights for Student Success: 2025 Cohort")
+
+    st.info("""
+    Key strategic themes emerging from the 2025 FTEN cohort include:
+
+    • Digital readiness and access to technology
+    • Academic preparedness for university studies
+    • Availability of private study environments
+    • Student accommodation and commuting challenges
+    • Financial vulnerability and part-time employment intentions
+    • Emotional support structures and first-year concerns
+    • Factors associated with academic success and student retention
+    """)
 
     st.divider()
