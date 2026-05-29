@@ -27,7 +27,7 @@ st.title(
 )
 
 st.caption(
-    "Prepared by Benjamin Ntshabele | Institutional Research Unit | SMU"
+    "Prepared by Benjamin Ntshabele | Institutional Researcher | | Institutional Planning and Quality Assurance |SMU"
 )
 
 st.caption(
