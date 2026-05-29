@@ -212,7 +212,7 @@ if uploaded_file is not None:
             st.info(
                 f"Key Finding: The largest student group falls under '{largest_group}', representing {largest_pct}% of the 2025 FTEN cohort."
             )
-                st.divider()
+            st.divider()
                 # =====================================================
     # 2025 ACADEMIC READINESS PROFILE
     # =====================================================
