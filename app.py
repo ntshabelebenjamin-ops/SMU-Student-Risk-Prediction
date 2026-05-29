@@ -9,12 +9,34 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 
+# =====================================================
+# PAGE CONFIGURATION
+# =====================================================
+
 st.set_page_config(
-    page_title="SMU FTEN Profile Dashboard",
+    page_title="SMU FTEN Dashboard 2025",
     layout="wide"
 )
 
-st.title("SMU First-Time Entering Students Profile Dashboard")
+# =====================================================
+# DASHBOARD TITLE
+# =====================================================
+
+st.title(
+    "SMU First-Time Entering Students Profile and Success Prediction Dashboard: 2025 Cohort"
+)
+
+st.caption(
+    "Institutional Research and Student Success Analytics Dashboard"
+)
+
+st.markdown("""
+This executive dashboard provides a comprehensive profile of the 2025 First-Time Entering Students (FTEN) cohort at Sefako Makgatho Health Sciences University (SMU). The analysis examines student demographics, academic preparedness, home and school learning environments, social and emotional wellbeing, and factors associated with academic success.
+""")
+
+# =====================================================
+# FILE UPLOAD
+# =====================================================
 
 uploaded_file = st.file_uploader(
     "Upload SMU Biographical Questionnaire Dataset",
@@ -25,17 +47,28 @@ if uploaded_file is not None:
 
     df = pd.read_excel(uploaded_file)
 
-    st.header("Executive Summary")
+    # =====================================================
+    # EXECUTIVE SUMMARY
+    # =====================================================
 
-    col1, col2, col3 = st.columns(3)
+    st.header("2025 FTEN Cohort Overview")
+
+    total_cells = df.shape[0] * df.shape[1]
+
+    completeness = round(
+        (1 - (df.isnull().sum().sum() / total_cells)) * 100,
+        1
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "First-Time Entering Students",
+        "FTEN Students",
         len(df)
     )
 
     col2.metric(
-        "Variables",
+        "Questionnaire Variables",
         len(df.columns)
     )
 
@@ -44,9 +77,18 @@ if uploaded_file is not None:
         int(df.isnull().sum().sum())
     )
 
+    col4.metric(
+        "Data Completeness",
+        f"{completeness}%"
+    )
+
     st.divider()
 
-    def frequency_table(dataframe, column_name):
+    # =====================================================
+    # HELPER FUNCTION
+    # =====================================================
+
+    def create_profile_table(dataframe, column_name):
 
         freq = (
             dataframe[column_name]
@@ -62,57 +104,114 @@ if uploaded_file is not None:
 
         freq["Percentage"] = round(
             freq["Frequency"] /
-            len(dataframe) * 100,
-            2
+            freq["Frequency"].sum() * 100,
+            1
+        )
+
+        total = pd.DataFrame({
+            "Response": ["TOTAL"],
+            "Frequency": [freq["Frequency"].sum()],
+            "Percentage": [100.0]
+        })
+
+        freq = pd.concat(
+            [freq, total],
+            ignore_index=True
         )
 
         return freq
 
-    st.header(
-        "Biographical and Demographic Profile"
-    )
+    # =====================================================
+    # STUDENT DEMOGRAPHIC PROFILE
+    # =====================================================
 
-    demographic_vars = [
-        "3. What was the main language used by teachers in class?",
-        "5. Was your language learning at school the same as your home language?",
-        "6. Is English your first, second or third language?",
-        "7. How did you pay for your school fees?",
-        "8. What was the average number of learners in your matric classroom?",
-        "9. How would you describe the place in which your school is situated?"
-    ]
+    st.header("2025 Student Demographic Profile")
 
-    for col in demographic_vars:
+    demographic_labels = {
 
-        if col in df.columns:
+        "3. What was the main language used by teachers in class?":
+        "Language of Learning and Teaching",
 
-            st.subheader(col)
+        "5. Was your language learning at school the same as your home language?":
+        "Alignment Between Home and School Language",
 
-            freq = frequency_table(
+        "6. Is English your first, second or third language?":
+        "English Language Exposure",
+
+        "7. How did you pay for your school fees?":
+        "School Funding Background",
+
+        "8. What was the average number of learners in your matric classroom?":
+        "Classroom Size",
+
+        "9. How would you describe the place in which your school is situated?":
+        "School Geographic Context"
+    }
+
+    for original_var, executive_label in demographic_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
                 df,
-                col
+                original_var
             )
 
-            st.dataframe(
-                freq,
-                use_container_width=True
-            )
+            left, right = st.columns([1, 2])
 
-            fig = px.bar(
-                freq,
-                x="Response",
-                y="Frequency",
-                title=col
-            )
+            with left:
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
 
-            st.plotly_chart(
-                fig,
-                use_container_width=True
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            with right:
+
+                if "Language" in executive_label:
+
+                    fig = px.pie(
+                        chart_data,
+                        names="Response",
+                        values="Percentage",
+                        hole=0.4,
+                        title=executive_label
+                    )
+
+                elif "Funding" in executive_label:
+
+                    fig = px.treemap(
+                        chart_data,
+                        path=["Response"],
+                        values="Frequency",
+                        title=executive_label
+                    )
+
+                else:
+
+                    fig = px.bar(
+                        chart_data,
+                        x="Response",
+                        y="Percentage",
+                        text="Percentage",
+                        title=executive_label
+                    )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+            largest_group = chart_data.iloc[0]["Response"]
+            largest_pct = chart_data.iloc[0]["Percentage"]
+
+            st.info(
+                f"Key Finding: The largest student group falls under '{largest_group}', representing {largest_pct}% of the 2025 FTEN cohort."
             )
 
     st.divider()
-
-else:
-
-    st.info(
-        "Please upload the SMU Biographical Questionnaire dataset."
-    )
