@@ -141,3 +141,116 @@ if uploaded_file is not None:
             file_name=filename,
             mime="text/csv"
         )
+            # =====================================================
+    # STUDENT DEMOGRAPHIC PROFILE
+    # =====================================================
+
+    st.header("2025 Student Demographic Profile")
+
+    demographic_labels = {
+
+        "3. What was the main language used by teachers in class?":
+        "Language of Learning and Teaching",
+
+        "5. Was your language learning at school the same as your home language?":
+        "Alignment Between Home and School Language",
+
+        "6. Is English your first, second or third language?":
+        "English Language Exposure",
+
+        "7. How did you pay for your school fees?":
+        "School Funding Background",
+
+        "8. What was the average number of learners in your matric classroom?":
+        "Classroom Size",
+
+        "9. How would you describe the place in which your school is situated?":
+        "School Geographic Context"
+    }
+
+    for original_var, executive_label in demographic_labels.items():
+
+        if original_var in df.columns:
+
+            st.subheader(executive_label)
+
+            freq = create_profile_table(
+                df,
+                original_var
+            )
+
+            chart_data = freq[
+                freq["Response"] != "TOTAL"
+            ]
+
+            left, right = st.columns([1, 2])
+
+            with left:
+
+                st.dataframe(
+                    freq,
+                    use_container_width=True
+                )
+
+                download_table(
+                    freq,
+                    f"{executive_label}.csv",
+                    f"📥 Download {executive_label}"
+                )
+
+            with right:
+
+                if "Language" in executive_label:
+
+                    fig = px.pie(
+                        chart_data,
+                        names="Response",
+                        values="Percentage",
+                        hole=0.45,
+                        title=executive_label
+                    )
+
+                elif "Funding" in executive_label:
+
+                    fig = px.treemap(
+                        chart_data,
+                        path=["Response"],
+                        values="Frequency",
+                        title=executive_label
+                    )
+
+                elif "Classroom" in executive_label:
+
+                    fig = px.bar(
+                        chart_data,
+                        x="Response",
+                        y="Percentage",
+                        text="Percentage",
+                        title=executive_label
+                    )
+
+                else:
+
+                    fig = px.bar(
+                        chart_data,
+                        y="Response",
+                        x="Percentage",
+                        orientation="h",
+                        text="Percentage",
+                        title=executive_label
+                    )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+            largest_group = chart_data.iloc[0]["Response"]
+
+            largest_pct = chart_data.iloc[0]["Percentage"]
+
+            st.info(
+                f"Key Finding: The largest student group falls under '{largest_group}', representing {largest_pct}% of the 2025 FTEN cohort."
+            )
+
+    st.divider()
